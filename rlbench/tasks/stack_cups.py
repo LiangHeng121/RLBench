@@ -14,56 +14,42 @@ class StackCups(Task):
         success_sensor = ProximitySensor('success')
         self.cup1 = Shape('cup1')
         self.cup2 = Shape('cup2')
-        self.cup3 = Shape('cup3')
-        self.cup1_visual = Shape('cup1_visual')
-        self.cup2_visual = Shape('cup2_visual')
-        self.cup3_visaul = Shape('cup3_visual')
 
         self.boundary = SpawnBoundary([Shape('boundary')])
 
-        self.register_graspable_objects([self.cup1, self.cup2, self.cup3])
+        self.register_graspable_objects([self.cup1, self.cup2])
         self.register_success_conditions([
             DetectedCondition(self.cup1, success_sensor),
-            DetectedCondition(self.cup3, success_sensor),
             NothingGrasped(self.robot.gripper)
         ])
 
+
+        for obj_name in ['cup3', 'cup3_visual', 'waypoint5','waypoint6','waypoint7']:
+            try:
+                obj = Shape(obj_name)
+                obj.remove()
+            except Exception as e:
+                print(f"[Warning] Could not remove {obj_name}: {e}")
+
+        for wp in ['waypoint5', 'waypoint6', 'waypoint7','waypoint8','waypoint9']:
+            try:
+                obj = Dummy(wp)
+                obj.remove()
+            except Exception as e:
+                print(f"[Warning] Could not remove {wp}: {e}")
+
     def init_episode(self, index: int) -> List[str]:
-        self.variation_index = index
-        target_color_name, target_rgb = colors[index]
-
-        random_idx = np.random.choice(len(colors))
-        while random_idx == index:
-            random_idx = np.random.choice(len(colors))
-        _, other1_rgb = colors[random_idx]
-
-        random_idx = np.random.choice(len(colors))
-        while random_idx == index:
-            random_idx = np.random.choice(len(colors))
-        _, other2_rgb = colors[random_idx]
-
-        self.cup2_visual.set_color(target_rgb)
-        self.cup1_visual.set_color(other1_rgb)
-        self.cup3_visaul.set_color(other2_rgb)
-
         self.boundary.clear()
         self.boundary.sample(self.cup2, min_distance=0.05,
                              min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
         self.boundary.sample(self.cup1, min_distance=0.05,
                              min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
-        self.boundary.sample(self.cup3, min_distance=0.05,
-                             min_rotation=(0, 0, 0), max_rotation=(0, 0, 0))
 
-        return ['stack the other cups on top of the %s cup' % target_color_name,
-                'place two of the cups onto the odd cup out',
-                'put the remaining two cups on top of the %s cup'
-                % target_color_name,
-                'pick up and set the cups down into the %s cup'
-                % target_color_name,
-                'create a stack of cups with the %s cup as its base'
-                % target_color_name,
-                'keeping the %s cup on the table, stack the other two onto it'
-                % target_color_name]
+        return [
+            'stack the two cups together',
+            'put one cup inside the other',
+            'place one cup into another cup'
+        ]
 
     def variation_count(self) -> int:
-        return len(colors)
+        return 1
